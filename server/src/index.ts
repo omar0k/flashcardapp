@@ -1,24 +1,35 @@
-import express, { Request, Response } from "express";
-import dotenv from "dotenv";
-import mongoose, { mongo } from "mongoose";
-import Deck from "./models/Deck";
+import { config } from "dotenv";
+config();
 
-dotenv.config();
+import express from "express";
+import mongoose from "mongoose";
+import cors from "cors";
+import {
+  getDeckController,
+  createDeckController,
+  deleteDeckController,
+  getDecksController,
+  createCardForDeckController,
+} from "./controllers/decksController";
+
+const PORT = 5000;
 
 const app = express();
 
-const PORT = process.env.PORT;
-
+app.use(
+  cors({
+    origin: "*",
+  })
+);
 app.use(express.json());
-app.post("/decks", async (req: Request, res: Response) => {
-  const newDeck = new Deck({
-    title: req.body.title,
-  });
-  const createdDeck = await newDeck.save();
-  res.json(createdDeck);
-});
 
-const db = mongoose.connect(process.env.MONGO_URL ?? "").then(() => {
-  console.log(`Listening on port ${PORT}`);
+app.get("/decks", getDecksController);
+app.get("/decks/:deckId", getDeckController);
+app.post("/decks", createDeckController);
+app.post("/decks/:deckId/cards", createCardForDeckController);
+app.delete("/decks/:deckId", deleteDeckController);
+
+mongoose.connect(process.env.MONGO_URL!).then(() => {
+  console.log(`listening on port ${PORT}`);
   app.listen(PORT);
 });
